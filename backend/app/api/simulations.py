@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends  # Import FastAPI routing and dependencies.
 from sqlalchemy.orm import Session  # Import the SQLAlchemy session type.
 
+from app.api.auth import get_current_user  # Reuse the shared current-user dependency.
 from app.db.database import get_db  # Import the database session dependency.
 from app.models.indicator import Indicator  # Import the indicator model.
 from app.services.simulation_service import create_brute_force_simulation, create_phishing_simulation  # Import simulation services.
 
 
-router = APIRouter(prefix="/simulations", tags=["Simulations"])  # Create the simulations router.
+router = APIRouter(  # Protect all simulation endpoints with JWT authentication.
+    prefix="/simulations",
+    tags=["Simulations"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("/brute-force")  # Expose the brute-force simulation endpoint.
