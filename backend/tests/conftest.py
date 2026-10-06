@@ -55,16 +55,23 @@ def client(db):
     app.dependency_overrides.clear()
 
 
+from app.core.security import create_access_token
+from app.services.email_service import EmailService
+
+
+@pytest.fixture(autouse=True)
+def mock_default_email_service(monkeypatch):
+    """Ensure automated tests never attempt real SMTP network calls by default."""
+    monkeypatch.setattr(EmailService, "send_otp_email", lambda to_email, otp: True)
+
+
 @pytest.fixture
 def auth_headers(client):
-    # Register and login a standard test user
+    # Register a standard test user
     client.post(
         "/auth/register",
         json={"username": "testsecanalyst", "email": "analyst@defense.corp", "password": "StrongPassword123!"},
     )
-    login_resp = client.post(
-        "/auth/login",
-        json={"username": "testsecanalyst", "password": "StrongPassword123!"},
-    )
-    token = login_resp.json()["access_token"]
+    token = create_access_token({"sub": "testsecanalyst"})
     return {"Authorization": f"Bearer {token}"}
+

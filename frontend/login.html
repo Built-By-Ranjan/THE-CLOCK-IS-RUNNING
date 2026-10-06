@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOC Authentication — THE CLOCK IS RUNNING</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); padding: 20px;">
+
+  <div class="panel" style="width: 100%; maxWidth: 400px; padding: 28px;">
+    <div style="margin-bottom: 20px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase;">
+        SOC Incident Response Platform
+      </div>
+      <h1 style="font-size: 18px; font-weight: 600; margin-top: 4px;">
+        THE CLOCK IS RUNNING
+      </h1>
+    </div>
+
+    <!-- Error message alert -->
+    <div id="alert-error" class="state-error" style="display: none;"></div>
+    <!-- Success message alert -->
+    <div id="alert-success" style="display: none; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 4px; margin-bottom: 14px; font-size: 13px;"></div>
+
+    <!-- Login Form -->
+    <form id="form-login">
+      <div class="form-group">
+        <label class="form-label">Username or Email</label>
+        <input type="text" id="login-username" class="form-input" placeholder="analyst@defense.corp" required autofocus />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required />
+      </div>
+
+      <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+        Sign In to SOC
+      </button>
+
+      <div style="margin-top: 16px; text-align: center; font-size: 12px;">
+        <span style="color: var(--text-muted);">Need an analyst account? </span>
+        <button type="button" id="btn-toggle-register" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 600;">
+          Register Analyst
+        </button>
+      </div>
+    </form>
+
+    <!-- Registration Form (Toggleable) -->
+    <form id="form-register" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" id="reg-username" class="form-input" placeholder="analyst_id" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Official Email</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="analyst@defense.corp" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="reg-password" class="form-input" placeholder="Minimum 6 characters" required />
+      </div>
+
+      <button type="submit" id="btn-register-submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+        Create Analyst Account
+      </button>
+
+      <div style="margin-top: 16px; text-align: center; font-size: 12px;">
+        <button type="button" id="btn-toggle-login" style="background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 600;">
+          &larr; Back to Login
+        </button>
+      </div>
+    </form>
+
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color); text-align: center;">
+      <a href="attack.html" style="font-size: 12px; color: var(--text-muted);">
+        Go to Attack Simulator (No Login) &rarr;
+      </a>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

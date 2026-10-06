@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Incident Details — THE CLOCK IS RUNNING</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="nav-section">
+          <span class="nav-label">Operations</span>
+          <a href="soc.html" class="nav-item active">
+            Incidents
+          </a>
+        </div>
+
+        <div class="nav-section" style="margin-top: 20px;">
+          <span class="nav-label">Tools</span>
+          <a href="attack.html" class="nav-item">
+            Attack Simulator
+          </a>
+        </div>
+      </div>
+
+      <div style="padding: 10px 8px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-muted);">
+        <div>NIST SP 800-61 Rev 2</div>
+        <div>72h Countdown Active</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top Header -->
+      <header class="header">
+        <div class="header-brand">
+          <a href="soc.html" style="display: flex; align-items: center; gap: 8px;">
+            <span>THE CLOCK IS RUNNING</span>
+          </a>
+          <span class="badge-tag">SOC TIER-3</span>
+        </div>
+
+        <div class="header-actions">
+          <a href="attack.html" class="btn btn-secondary btn-sm">
+            Attack Simulator
+          </a>
+          <div id="header-user-info"></div>
+        </div>
+      </header>
+
+      <main class="page-body">
+        <!-- Back Breadcrumb -->
+        <div style="margin-bottom: 14px;">
+          <a href="soc.html" style="font-size: 12px; color: var(--text-muted);">
+            &larr; Back to Incident Queue
+          </a>
+        </div>
+
+        <!-- Global Status Messages -->
+        <div id="alert-error" class="state-error" style="display: none;"></div>
+        <div id="alert-success" style="display: none; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; border-radius: 4px; margin-bottom: 14px; font-size: 13px;"></div>
+
+        <!-- Incident Headline Header -->
+        <div class="page-header" style="align-items: center;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span id="label-incident-id" class="mono" style="font-size: 16px; font-weight: 600;">#—</span>
+              <h1 id="label-incident-title" class="page-title" style="margin: 0;">Loading incident...</h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+              <span id="badge-status-container"></span>
+              <span id="badge-priority-container"></span>
+              <span class="mono" style="font-size: 12px; color: var(--text-secondary);">
+                Vector: <strong id="label-attack-type">—</strong>
+              </span>
+              <span style="color: var(--text-muted);">|</span>
+              <span id="label-detected-at" style="font-size: 12px; color: var(--text-muted);">
+                Detected: —
+              </span>
+            </div>
+          </div>
+
+          <!-- 72-Hour Quick Countdown Widget -->
+          <div id="clock-widget-container" style="min-width: 240px;">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Tab Controls -->
+        <div class="tabs">
+          <button id="tab-btn-overview" class="tab active" data-tab="overview">Overview</button>
+          <button id="tab-btn-timeline" class="tab" data-tab="timeline">Timeline (<span id="count-timeline">0</span>)</button>
+          <button id="tab-btn-evidence" class="tab" data-tab="evidence">Evidence (<span id="count-evidence">0</span>)</button>
+          <button id="tab-btn-nist" class="tab" data-tab="nist">NIST & ATT&CK</button>
+          <button id="tab-btn-ai" class="tab" data-tab="ai">AI Analysis <span id="count-ai"></span></button>
+          <button id="tab-btn-clock" class="tab" data-tab="clock">72-Hour Regulatory Clock</button>
+        </div>
+
+        <!-- =================== TAB 1: OVERVIEW =================== -->
+        <div id="tab-content-overview" class="tab-panel">
+          <div class="grid-2">
+            <!-- Left: Description and Controls -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">What Happened</h2>
+                <span id="label-source" class="badge badge-default">Source: simulator</span>
+              </div>
+              <p id="label-description" style="white-space: pre-wrap; color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+                Loading telemetry...
+              </p>
+
+              <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                <div class="panel-title" style="margin-bottom: 10px; font-size: 13px;">Lifecycle Controls</div>
+
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                  <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <label class="form-label">Update Status</label>
+                    <select id="select-status" class="form-select">
+                      <option value="Open">Open</option>
+                      <option value="Under Investigation">Under Investigation</option>
+                      <option value="Contained">Contained</option>
+                      <option value="Eradicated">Eradicated</option>
+                      <option value="Recovered">Recovered</option>
+                      <option value="Closed">Closed</option>
+                    </select>
+                  </div>
+                  <button id="btn-apply-status" class="btn btn-secondary">Apply Status</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: flex-end; margin-top: 12px;">
+                  <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <label class="form-label">Update Priority</label>
+                    <select id="select-priority" class="form-select">
+                      <option value="P1">P1 — Critical (Business Impact)</option>
+                      <option value="P2">P2 — High</option>
+                      <option value="P3">P3 — Moderate</option>
+                      <option value="P4">P4 — Low / Informational</option>
+                    </select>
+                  </div>
+                  <button id="btn-apply-priority" class="btn btn-secondary">Apply Priority</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Assets, Users, and IoCs -->
+            <div>
+              <!-- Affected Assets & Users -->
+              <div class="panel">
+                <div class="panel-header">
+                  <h2 class="panel-title">Scope & Affected Infrastructure</h2>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                  <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">AFFECTED SYSTEMS / ASSETS</div>
+                  <div id="list-assets" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">None recorded</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">AFFECTED USERS / IDENTITIES</div>
+                  <div id="list-users" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">None recorded</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Indicators of Compromise -->
+              <div class="panel">
+                <div class="panel-header">
+                  <h2 class="panel-title">Indicators of Compromise (IoCs)</h2>
+                  <button id="btn-toggle-add-ioc" class="btn btn-secondary btn-sm">+ Add IoC</button>
+                </div>
+
+                <!-- Add IoC form -->
+                <form id="form-add-ioc" style="display: none; margin-bottom: 14px; padding: 10px; background: var(--bg-secondary); border-radius: 4px;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <select id="new-ioc-type" class="form-select" style="width: 120px;">
+                      <option value="ip">IP</option>
+                      <option value="domain">Domain</option>
+                      <option value="url">URL</option>
+                      <option value="hash">Hash</option>
+                      <option value="email">Email</option>
+                      <option value="process">Process</option>
+                    </select>
+                    <input type="text" id="new-ioc-value" class="form-input" placeholder="Indicator value..." required />
+                  </div>
+                  <input type="text" id="new-ioc-desc" class="form-input" placeholder="Description / Context (optional)" style="margin-bottom: 8px;" />
+                  <div style="display: flex; gap: 6px;">
+                    <button type="submit" id="btn-save-ioc" class="btn btn-primary btn-sm">Save IoC</button>
+                    <button type="button" id="btn-cancel-ioc" class="btn btn-secondary btn-sm">Cancel</button>
+                  </div>
+                </form>
+
+                <div id="ioc-table-container">
+                  <table style="font-size: 12px;">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ioc-rows">
+                      <!-- Rendered dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== TAB 2: TIMELINE =================== -->
+        <div id="tab-content-timeline" class="tab-panel" style="display: none;">
+          <div class="panel" style="padding: 0;">
+            <div class="panel-header" style="padding: 14px 18px; margin: 0;">
+              <h2 class="panel-title">Audit Trail & Activity Log</h2>
+              <span style="font-size: 12px; color: var(--text-muted);">
+                Immutable chronological records from Core-1 engine
+              </span>
+            </div>
+
+            <div id="timeline-empty" class="state-empty" style="display: none; margin: 20px;">
+              No timeline events recorded yet.
+            </div>
+
+            <div id="timeline-table-wrapper" class="table-container" style="border: none;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 160px;">Timestamp (UTC)</th>
+                    <th>Event</th>
+                    <th>Actor</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>Transition</th>
+                  </tr>
+                </thead>
+                <tbody id="timeline-rows">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== TAB 3: EVIDENCE =================== -->
+        <div id="tab-content-evidence" class="tab-panel" style="display: none;">
+          <div class="panel" style="padding: 0;">
+            <div class="panel-header" style="padding: 14px 18px; margin: 0;">
+              <div>
+                <h2 class="panel-title">Forensic Evidence Metadata</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                  SHA-256 integrity verification hashes logged during investigation.
+                </p>
+              </div>
+              <button id="btn-toggle-add-evidence" class="btn btn-secondary btn-sm">+ Log Evidence Item</button>
+            </div>
+
+            <!-- Add Evidence Form -->
+            <form id="form-add-evidence" style="display: none; padding: 16px 18px; border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label class="form-label">Evidence Type</label>
+                  <input type="text" id="new-ev-type" class="form-input" value="Disk Image" required />
+                </div>
+                <div>
+                  <label class="form-label">Source System</label>
+                  <input type="text" id="new-ev-source" class="form-input" value="Host Agent" required />
+                </div>
+                <div>
+                  <label class="form-label">Collector (Analyst ID)</label>
+                  <input type="text" id="new-ev-collector" class="form-input" value="analyst" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">SHA-256 Hash</label>
+                <input type="text" id="new-ev-hash" class="form-input mono" placeholder="64-character hex hash" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description / Custody Notes</label>
+                <input type="text" id="new-ev-desc" class="form-input" placeholder="Evidence custody notes..." />
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="submit" id="btn-save-evidence" class="btn btn-primary btn-sm">Save Evidence Record</button>
+                <button type="button" id="btn-cancel-evidence" class="btn btn-secondary btn-sm">Cancel</button>
+              </div>
+            </form>
+
+            <div id="evidence-empty" class="state-empty" style="display: none; margin: 20px;">
+              No evidence metadata logged for this incident.
+            </div>
+
+            <div id="evidence-table-wrapper" class="table-container" style="border: none;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Collector</th>
+                    <th>SHA-256 Checksum</th>
+                    <th>Collected At</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="evidence-rows">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== TAB 4: NIST & ATT&CK =================== -->
+        <div id="tab-content-nist" class="tab-panel" style="display: none;">
+          <div class="grid-2">
+            <!-- NIST IR Lifecycle -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">NIST SP 800-61 Lifecycle</h2>
+                <span id="badge-nist-current" class="badge badge-default">Phase</span>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                  Active phase managed via single source of truth Core-1 state machine.
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Transition To Phase</label>
+                  <select id="select-nist-phase" class="form-select">
+                    <option value="Preparation">Preparation</option>
+                    <option value="Detection & Analysis">Detection & Analysis</option>
+                    <option value="Containment, Eradication & Recovery">Containment, Eradication & Recovery</option>
+                    <option value="Post-Incident Activity">Post-Incident Activity</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Transition Rationale (Audit Log)</label>
+                  <textarea id="text-nist-rationale" class="form-textarea" rows="2" placeholder="Reason for transitioning phase..."></textarea>
+                </div>
+
+                <button id="btn-execute-nist" class="btn btn-primary btn-sm">Execute NIST Transition</button>
+              </div>
+
+              <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">
+                  Phase Transition History
+                </div>
+                <div id="nist-history-container" style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- MITRE ATT&CK Classification -->
+            <div class="panel">
+              <div class="panel-header">
+                <h2 class="panel-title">MITRE ATT&CK Classification</h2>
+                <span id="label-attack-vector" class="mono badge badge-default">—</span>
+              </div>
+
+              <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                <p>
+                  The system associates detected incidents with verified MITRE ATT&CK techniques based on
+                  telemetry signatures and authoritative project knowledge documents.
+                </p>
+
+                <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <strong>Active Scenario Vector</strong>
+                      <span id="label-mitre-active" class="mono" style="font-weight: 600;">—</span>
+                    </div>
+                    <div id="label-mitre-source" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                      Source: simulator
+                    </div>
+                  </div>
+
+                  <div id="mitre-ai-suggestion-box" style="display: none; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 12px; font-weight: 600;">AI Suggested Technique:</span>
+                      <span id="badge-ai-technique" class="mono badge badge-p2" style="font-size: 12px;">—</span>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+                      Name: <strong id="label-ai-technique-name">—</strong>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                      Status: <strong id="label-ai-technique-status">—</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== TAB 5: AI ANALYSIS =================== -->
+        <div id="tab-content-ai" class="tab-panel" style="display: none;">
+          <!-- Mandatory Advisory Banner -->
+          <div class="advisory-box">
+            <strong>AI Suggested — Human Review Required</strong>: AI suggestions are advisory only and must be validated by a human incident responder before containment or breach actions.
+          </div>
+
+          <!-- Controls Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; font-weight: 600;">Analysis History:</span>
+              <select id="select-ai-history" class="form-select" style="width: auto; padding: 4px 8px; font-size: 12px;">
+                <option value="">No analyses generated yet</option>
+              </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+              <button id="btn-run-ai" class="btn btn-secondary btn-sm">Run Analysis</button>
+              <button id="btn-reanalyze-ai" class="btn btn-primary btn-sm">Re-Analyze Incident</button>
+            </div>
+          </div>
+
+          <!-- Empty state when no analysis generated -->
+          <div id="ai-empty" class="state-empty" style="display: none;">
+            <p>No AI analysis has been executed for this incident yet.</p>
+            <button id="btn-init-ai" class="btn btn-primary" style="margin-top: 12px;">
+              Generate AI Advisory Analysis
+            </button>
+          </div>
+
+          <!-- Analysis Details Panel -->
+          <div id="ai-panel" class="panel" style="display: none;">
+            <div class="panel-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <h2 id="ai-record-title" class="panel-title">Analysis Record #—</h2>
+                  <span id="ai-status-badge" class="badge badge-default">PENDING</span>
+                  <span id="ai-provider-badge" class="badge badge-default" style="font-size: 10px;">Provider: gemini</span>
+                </div>
+                <div id="ai-metadata-line" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                  Generated: —
+                </div>
+              </div>
+
+              <!-- Human Review Action Buttons -->
+              <div style="display: flex; gap: 8px;">
+                <button id="btn-ai-accept" class="btn btn-secondary btn-sm" style="color: #166534; border-color: #bbf7d0;">
+                  Accept Suggestion
+                </button>
+                <button id="btn-ai-reject-toggle" class="btn btn-secondary btn-sm" style="color: #991b1b; border-color: #fecaca;">
+                  Reject
+                </button>
+                <button id="btn-ai-override-toggle" class="btn btn-secondary btn-sm">
+                  Override Values
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Reject Box -->
+            <div id="ai-reject-box" style="display: none; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; margin-bottom: 14px;">
+              <div class="form-group">
+                <label class="form-label" style="color: #991b1b;">Rejection Reason (Audit Trail)</label>
+                <input type="text" id="ai-reject-reason" class="form-input" placeholder="Why is this suggestion rejected? (e.g. benign vulnerability scanner)" />
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button id="btn-ai-confirm-reject" class="btn btn-danger btn-sm">Confirm Rejection</button>
+                <button id="btn-ai-cancel-reject" class="btn btn-secondary btn-sm">Cancel</button>
+              </div>
+            </div>
+
+            <!-- Inline Override Box -->
+            <div id="ai-override-box" style="display: none; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; margin-bottom: 14px;">
+              <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px;">Analyst Override Specifications</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div>
+                  <label class="form-label">Incident Type</label>
+                  <input type="text" id="override-type" class="form-input" />
+                </div>
+                <div>
+                  <label class="form-label">ATT&CK Technique ID</label>
+                  <input type="text" id="override-technique" class="form-input mono" />
+                </div>
+                <div>
+                  <label class="form-label">NIST Phase</label>
+                  <select id="override-phase" class="form-select">
+                    <option value="Preparation">Preparation</option>
+                    <option value="Detection & Analysis">Detection & Analysis</option>
+                    <option value="Containment, Eradication & Recovery">Containment, Eradication & Recovery</option>
+                    <option value="Post-Incident Activity">Post-Incident Activity</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">Severity Level</label>
+                  <select id="override-severity" class="form-select">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                    <option value="Not Determined">Not Determined</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button id="btn-ai-confirm-override" class="btn btn-primary btn-sm">Submit Analyst Override</button>
+                <button id="btn-ai-cancel-override" class="btn btn-secondary btn-sm">Cancel</button>
+              </div>
+            </div>
+
+            <!-- Suggestion Grid -->
+            <div class="grid-2" style="margin-bottom: 16px;">
+              <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 3px;">
+                <div class="metric-label">SUGGESTED INCIDENT TYPE & TECHNIQUE</div>
+                <div id="ai-suggested-type" style="font-size: 16px; font-weight: 600; margin-top: 4px;">—</div>
+                <div class="mono" style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                  Technique: <strong id="ai-suggested-technique">—</strong>
+                </div>
+              </div>
+
+              <div style="padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 3px;">
+                <div class="metric-label">SEVERITY & NIST PHASE SUGGESTION</div>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                  <span id="ai-severity-badge-container"></span>
+                  <span style="font-size: 12px; color: var(--text-muted);">(Independent from Priority)</span>
+                </div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+                  Suggested Phase: <strong id="ai-suggested-phase">—</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analytical Justification -->
+            <div style="margin-bottom: 16px;">
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">
+                ANALYTICAL JUSTIFICATION
+              </div>
+              <p id="ai-reason" style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; background: var(--bg-primary); padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 3px;">
+                —
+              </p>
+            </div>
+
+            <!-- Recommended Next Actions -->
+            <div>
+              <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                RECOMMENDED NEXT ACTIONS (HUMAN AUTHORIZATION REQUIRED)
+              </div>
+              <ul id="ai-actions-list" style="padding-left: 18px; font-size: 13px; color: var(--text-primary); display: flex; flex-direction: column; gap: 6px;">
+                <!-- Dynamically populated -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================== TAB 6: 72-HOUR REGULATORY CLOCK =================== -->
+        <div id="tab-content-clock" class="tab-panel" style="display: none;">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2 class="panel-title">72-Hour Regulatory Countdown Engine</h2>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                  Calculated strictly server-side from incident detection timestamp.
+                </p>
+              </div>
+              <span id="clock-compliance-badge" class="badge badge-default">—</span>
+            </div>
+
+            <div id="clock-full-widget" style="max-width: 420px; margin-bottom: 20px;">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div class="grid-2">
+              <div style="padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;">
+                <div class="metric-label">DETECTION TIMESTAMP</div>
+                <div id="clock-full-detected" class="mono" style="font-size: 14px; font-weight: 600;">—</div>
+                <div id="clock-full-elapsed" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  Elapsed Time: —
+                </div>
+              </div>
+
+              <div style="padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;">
+                <div class="metric-label">REGULATORY DEADLINE (T + 72 Hours)</div>
+                <div id="clock-full-deadline" class="mono" style="font-size: 14px; font-weight: 600;">—</div>
+                <div id="clock-full-compliance" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  Compliance Flag: —
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; color: var(--text-muted);">
+              <strong>Notice</strong>: The 72-hour regulatory countdown reflects automated elapsed time tracking against the initial detection timestamp. Regulatory reporting and breach notifications require authoritative review by organizational compliance officers.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/incident.js"></script>
+</body>
+</html>

@@ -33,8 +33,8 @@ def create_brute_force_simulation(
     detected_at = now
     deadline_at = calculate_deadline(detected_at)
 
-    source_ip = (custom_params or {}).get("source_ip", "198.51.100.42")
-    target_user = (custom_params or {}).get("target_user", "admin")
+    source_ip = (custom_params or {}).get("source_ip") or "198.51.100.42"
+    target_user = (custom_params or {}).get("target_user") or "admin"
 
     # 1. Create Incident
     incident = Incident(
@@ -222,7 +222,7 @@ def create_phishing_simulation(
     detected_at = now
     deadline_at = calculate_deadline(detected_at)
 
-    target_email = (custom_params or {}).get("target_user", "sarah.connor@organization.internal")
+    target_email = (custom_params or {}).get("target_user") or "sarah.connor@organization.internal"
     sender_email = "it-support-notice@fake-identity-verification.example"
 
     # 1. Create Incident

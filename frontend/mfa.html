@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security Verification — THE CLOCK IS RUNNING</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); padding: 20px;">
+
+  <div class="panel" style="width: 100%; max-width: 420px; padding: 28px;">
+    <div style="margin-bottom: 20px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase;">
+        Two-Factor Security Verification
+      </div>
+      <h1 style="font-size: 18px; font-weight: 600; margin-top: 4px;">
+        Email Verification Code
+      </h1>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+        Enter the 6-digit code sent to your email.
+      </p>
+      <div id="mfa-target-email" style="display: none; font-size: 12px; color: var(--accent); font-weight: 500; margin-top: 4px;"></div>
+    </div>
+
+    <!-- Error message alert -->
+    <div id="alert-error" class="state-error" style="display: none; margin-bottom: 14px;"></div>
+    <!-- Success/info message alert -->
+    <div id="alert-info" style="display: none; padding: 10px 14px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 4px; margin-bottom: 14px; font-size: 13px;"></div>
+
+    <form id="form-mfa">
+      <div class="form-group">
+        <label class="form-label" style="text-align: center; display: block;">6-Digit Verification Code</label>
+        <input
+          type="text"
+          id="mfa-otp"
+          inputmode="numeric"
+          pattern="[0-9]{6}"
+          maxlength="6"
+          class="form-input"
+          placeholder="000000"
+          style="font-size: 24px; letter-spacing: 0.35em; text-align: center; font-family: var(--font-mono); font-weight: 600;"
+          required
+          autofocus
+        />
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+          <span id="mfa-expiry-timer">Expires in: 5:00</span>
+          <span id="mfa-attempts-hint">Max 5 attempts</span>
+        </div>
+      </div>
+
+      <button type="submit" id="btn-mfa-submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        Verify & Open SOC Dashboard
+      </button>
+
+      <button type="button" id="btn-mfa-resend" class="btn btn-secondary" style="width: 100%; margin-top: 8px;" disabled>
+        Resend Code (<span id="resend-countdown">60</span>s)
+      </button>
+
+      <div style="margin-top: 20px; text-align: center; font-size: 12px;">
+        <a href="login.html" style="color: var(--accent); text-decoration: none;">
+          &larr; Back to Login
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/mfa.js"></script>
+</body>
+</html>

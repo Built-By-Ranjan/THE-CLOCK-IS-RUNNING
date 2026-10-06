@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controlled Attack Simulator — THE CLOCK IS RUNNING</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body style="min-height: 100vh; background: var(--bg-primary);">
+
+  <!-- Simulator Top Header -->
+  <header class="header">
+    <div class="header-brand">
+      <a href="attack.html" style="display: flex; align-items: center; gap: 8px;">
+        <span>THE CLOCK IS RUNNING</span>
+      </a>
+      <span class="badge-tag">ATTACK SIMULATOR (PUBLIC)</span>
+    </div>
+    <div class="header-actions">
+      <a href="soc.html" class="btn btn-secondary btn-sm">
+        Access SOC Dashboard (Login required) &rarr;
+      </a>
+    </div>
+  </header>
+
+  <main class="page-body" style="max-width: 960px; margin-top: 20px;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Controlled Attack Simulator</h1>
+        <p class="page-subtitle">
+          Public sandbox to launch safe security attack vectors. Executions create real incidents in the backend database,
+          initialize the 72-hour regulatory countdown clock, and provide an action to inspect the incident in the SOC dashboard.
+        </p>
+      </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="sim-error" class="state-error" style="display: none;"></div>
+    <div id="sim-status" style="display: none; padding: 12px 16px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 4px; margin-bottom: 18px; font-size: 13px;"></div>
+
+    <!-- Simulation Success Result Container -->
+    <div id="sim-result-box" style="display: none; padding: 16px 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 12px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.05em;">Simulation Success</div>
+          <div style="font-size: 15px; font-weight: 600; color: #14532d; margin-top: 2px;">
+            Created Incident <span id="res-incident-id" class="mono" style="font-weight: 700;">#—</span>: <span id="res-incident-title">—</span>
+          </div>
+          <div id="res-incident-desc" style="font-size: 12px; color: #166534; margin-top: 4px;">
+            72-hour regulatory clock initialized.
+          </div>
+        </div>
+        <div>
+          <a id="btn-open-incident" href="#" class="btn btn-primary" style="background: #15803d; border-color: #15803d; text-decoration: none;">
+            Open Incident in SOC &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Card 1: Brute Force -->
+      <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Brute Force Authentication Abuse</h2>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">MITRE ATT&CK: T1110</span>
+            </div>
+            <span class="badge badge-p2">P2 Scenario</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+            Simulates automated credential guessing against public-facing SSH jump host (RFC 5737 documentation IP 198.51.100.42).
+            Generates high-frequency authentication failure telemetry and locks target account thresholds.
+          </p>
+        </div>
+        <button id="btn-sim-bruteforce" class="btn btn-primary" style="width: 100%;">
+          Run Simulation
+        </button>
+      </div>
+
+      <!-- Card 2: Phishing -->
+      <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Spear Phishing Credential Harvest</h2>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">MITRE ATT&CK: T1566</span>
+            </div>
+            <span class="badge badge-p1">P1 Scenario</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+            Simulates deceptive executive email spoofing with credential-harvesting link and malicious attachment hashes.
+            Impacts user mailbox, triggers regulatory reporting timeline, and generates email gateway indicators.
+          </p>
+        </div>
+        <button id="btn-sim-phishing" class="btn btn-primary" style="width: 100%;">
+          Run Simulation
+        </button>
+      </div>
+
+      <!-- Card 3: PowerShell -->
+      <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+        <div>
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">PowerShell Script Execution</h2>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">MITRE ATT&CK: T1059.001</span>
+            </div>
+            <span class="badge badge-default">Coming Soon</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+            Simulates encoded command-line execution with execution policy bypass flags and memory-only staging on endpoint host.
+          </p>
+        </div>
+        <button id="btn-sim-powershell" class="btn btn-secondary" style="width: 100%;">
+          Coming Soon (Backend Unavailable)
+        </button>
+      </div>
+
+      <!-- Card 4: DDoS -->
+      <div class="panel" style="display: flex; flex-direction: column; justify-content: space-between; opacity: 0.85;">
+        <div>
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title">Network Denial of Service (DDoS)</h2>
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">MITRE ATT&CK: T1498</span>
+            </div>
+            <span class="badge badge-default">Coming Soon</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+            Simulates ingress volumetric UDP/SYN flood against border interfaces causing saturation of connection queues.
+          </p>
+        </div>
+        <button id="btn-sim-ddos" class="btn btn-secondary" style="width: 100%;">
+          Coming Soon (Backend Unavailable)
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; color: var(--text-muted);">
+      <strong>Workflow Note</strong>: Simulations are safe, non-destructive demonstrations that generate synthetic telemetry conforming to RFC 5737 and RFC 2606. Every simulation initiates a live 72-hour regulatory countdown against its detection time in the SOC database.
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/attack.js"></script>
+</body>
+</html>
