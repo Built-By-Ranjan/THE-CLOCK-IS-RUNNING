@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.simulation import SimulationResponse, SimulationCustomRequest
 from app.services.simulation_service import (
     create_brute_force_simulation,
+    create_ddos_simulation,
     create_phishing_simulation,
 )
 
@@ -68,5 +69,27 @@ def trigger_phishing(
         "detected_at": incident.detected_at,
         "deadline_at": incident.deadline_at,
         "message": f"Controlled Phishing simulation successfully initiated with Incident ID #{incident.id}.",
+        "incident": incident,
+    }
+
+
+@router.post("/ddos", response_model=SimulationResponse, status_code=status.HTTP_201_CREATED)
+def trigger_ddos(
+    req: Optional[SimulationCustomRequest] = None,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db),
+):
+    """Launch a controlled, safe DDoS attack simulation."""
+    actor = current_user.username if current_user else "simulator"
+    params = req.model_dump() if req else {}
+    incident = create_ddos_simulation(db=db, actor=actor, custom_params=params)
+
+    return {
+        "incident_id": incident.id,
+        "attack_type": incident.attack_type,
+        "status": incident.status,
+        "detected_at": incident.detected_at,
+        "deadline_at": incident.deadline_at,
+        "message": f"Controlled DDoS simulation successfully initiated with Incident ID #{incident.id}.",
         "incident": incident,
     }

@@ -377,3 +377,167 @@ def create_phishing_simulation(
     db.commit()
     db.refresh(incident)
     return incident
+
+
+def create_ddos_simulation(
+    db: Session,
+    actor: str = "simulator",
+    custom_params: Optional[dict] = None,
+) -> Incident:
+    """
+    Creates a controlled simulated DDoS incident.
+    - Saves incident to database
+    - attack_type = 'DDoS'
+    - creates safe simulated indicators
+    - creates timeline events and initial NIST history
+    - associates affected assets and users
+    - returns the created Incident model
+    NOTE: Does NOT generate real network traffic.
+    """
+    now = datetime.now(timezone.utc)
+    detected_at = now
+    deadline_at = calculate_deadline(detected_at)
+
+    # 1. Create Incident
+    incident = Incident(
+        title="Controlled Simulation: Distributed Denial of Service Against Public Web Tier",
+        description=(
+            "Automated detection of a volumetric traffic flood sustained against the "
+            "public web tier, exhausting edge capacity and exceeding normal request-rate thresholds."
+        ),
+        attack_type="DDoS",
+        status="Open",
+        priority="P2",
+        source="simulator",
+        current_nist_phase="Detection & Analysis",
+        detected_at=detected_at,
+        deadline_at=deadline_at,
+        created_at=now,
+        updated_at=now,
+    )
+    db.add(incident)
+    db.flush()  # Populates incident.id
+
+    # 2. Add Affected Assets
+    assets = [
+        IncidentAsset(
+            incident_id=incident.id,
+            asset_name="web-lb-01",
+            asset_type="Load Balancer",
+            description="Public web tier load balancer distributing inbound application traffic",
+            added_at=now,
+        ),
+        IncidentAsset(
+            incident_id=incident.id,
+            asset_name="edge-cdn-02",
+            asset_type="CDN Edge Node",
+            description="Content delivery edge node serving public web assets",
+            added_at=now,
+        ),
+    ]
+    db.add_all(assets)
+
+    # 3. Add Affected Users
+    users = [
+        IncidentUser(
+            incident_id=incident.id,
+            username="ops.oncall",
+            email="ops.oncall@organization.internal",
+            department="Infrastructure",
+            impact="On-call operator engaged to coordinate public web tier response",
+            added_at=now,
+        ),
+        IncidentUser(
+            incident_id=incident.id,
+            username="netsec.oncall",
+            email="netsec.oncall@organization.internal",
+            department="Infrastructure",
+            impact="Network security responder assigned to investigate volumetric traffic",
+            added_at=now,
+        ),
+    ]
+    db.add_all(users)
+
+    # 4. Add Safe Simulated Indicators
+    indicators = [
+        Indicator(
+            incident_id=incident.id,
+            type="IP",
+            value="203.0.113.50",
+            description="Simulated source IP associated with volumetric request flood (RFC 5737 safe documentation IP)",
+            source="simulator",
+            created_at=now,
+            updated_at=now,
+        ),
+        Indicator(
+            incident_id=incident.id,
+            type="IP",
+            value="203.0.113.51",
+            description="Simulated source IP associated with coordinated traffic flood (RFC 5737 safe documentation IP)",
+            source="simulator",
+            created_at=now,
+            updated_at=now,
+        ),
+        Indicator(
+            incident_id=incident.id,
+            type="Other",
+            value="50,000 req/s sustained (Threshold Exceeded)",
+            description="Volumetric request-rate anomaly detected across the public web tier",
+            source="simulator",
+            created_at=now,
+            updated_at=now,
+        ),
+    ]
+    db.add_all(indicators)
+
+    # 5. Add Timeline Events
+    timeline_events = [
+        TimelineEvent(
+            incident_id=incident.id,
+            timestamp=detected_at - timedelta(minutes=2),
+            event="Simulation Initiated",
+            actor=actor,
+            source="simulator",
+            description="Controlled DDoS scenario launched in sandbox environment.",
+        ),
+        TimelineEvent(
+            incident_id=incident.id,
+            timestamp=detected_at,
+            event="Incident Detected",
+            actor="siem-monitor",
+            source="system",
+            description="Automated threshold alert for sustained volumetric traffic flood.",
+        ),
+        TimelineEvent(
+            incident_id=incident.id,
+            timestamp=detected_at + timedelta(seconds=15),
+            event="Indicators Extracted",
+            actor="system",
+            source="system",
+            description="Extracted source IPs and sustained request-rate anomaly indicators.",
+        ),
+        TimelineEvent(
+            incident_id=incident.id,
+            timestamp=detected_at + timedelta(seconds=30),
+            event="NIST Phase Assigned",
+            actor="system",
+            source="system",
+            description="Incident initialized under NIST phase: Detection & Analysis.",
+            new_value="Detection & Analysis",
+        ),
+    ]
+    db.add_all(timeline_events)
+
+    # 6. Record Initial NIST History
+    nist_entry = NISTHistory(
+        incident_id=incident.id,
+        phase="Detection & Analysis",
+        timestamp=detected_at,
+        actor="system",
+        rationale="Automated triage of a volumetric DDoS pattern exceeding public web tier traffic thresholds.",
+    )
+    db.add(nist_entry)
+
+    db.commit()
+    db.refresh(incident)
+    return incident
