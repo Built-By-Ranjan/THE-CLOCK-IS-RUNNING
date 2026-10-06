@@ -1,62 +1,72 @@
-from fastapi import APIRouter, Depends  # Import FastAPI routing and dependencies.
-from sqlalchemy.orm import Session  # Import the SQLAlchemy session type.
+from typing import Optional
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
-from app.api.auth import get_current_user  # Reuse the shared current-user dependency.
-from app.db.database import get_db  # Import the database session dependency.
-from app.models.indicator import Indicator  # Import the indicator model.
-from app.services.simulation_service import create_brute_force_simulation, create_phishing_simulation  # Import simulation services.
-
-
-router = APIRouter(  # Protect all simulation endpoints with JWT authentication.
-    prefix="/simulations",
-    tags=["Simulations"],
-    dependencies=[Depends(get_current_user)],
+from app.db.database import get_db
+from app.api.deps import get_optional_current_user
+from app.models.user import User
+from app.schemas.simulation import SimulationResponse, SimulationCustomRequest
+from app.services.simulation_service import (
+    create_brute_force_simulation,
+    create_phishing_simulation,
 )
 
+router = APIRouter(prefix="/simulations", tags=["Attack Simulations"])
 
-@router.post("/brute-force")  # Expose the brute-force simulation endpoint.
-def brute_force_simulation(db: Session = Depends(get_db)):  # Create and return a brute-force simulation.
-    incident = create_brute_force_simulation(db)  # Create the simulated incident and indicators.
-    indicators = db.query(Indicator).filter(Indicator.incident_id == incident.id).all()  # Load its indicators.
 
-    return {  # Return the simulation summary.
-        "id": incident.id,  # Include the incident identifier.
-        "title": incident.title,  # Include the incident title.
-        "attack_type": incident.attack_type,  # Include the attack type.
-        "status": incident.status,  # Include the incident status.
-        "nist_phase": incident.nist_phase,  # Include the NIST phase.
-        "detected_at": incident.detected_at,  # Include the detection timestamp.
-        "deadline_at": incident.deadline_at,  # Include the response deadline.
-        "indicators": [  # Include the incident indicators.
-            {  # Serialize one indicator.
-                "type": indicator.type,  # Include the indicator type.
-                "value": indicator.value,  # Include the indicator value.
-                "note": indicator.note,  # Include the indicator note.
-            }
-            for indicator in indicators
-        ],
+@router.post("/brute-force", response_model=SimulationResponse, status_code=status.HTTP_201_CREATED)
+def trigger_brute_force(
+    req: Optional[SimulationCustomRequest] = None,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Launch a controlled, safe Brute Force attack simulation.
+    - Generates realistic security telemetry and safe indicators (RFC 5737 IP, usernames)
+    - Persists incident in PostgreSQL
+    - Starts the 72-hour regulatory countdown clock
+    - Initializes NIST IR phase 'Detection & Analysis'
+    - Creates timeline audit trail
+    """
+    actor = current_user.username if current_user else "simulator"
+    params = req.model_dump() if req else {}
+    incident = create_brute_force_simulation(db=db, actor=actor, custom_params=params)
+
+    return {
+        "incident_id": incident.id,
+        "attack_type": incident.attack_type,
+        "status": incident.status,
+        "detected_at": incident.detected_at,
+        "deadline_at": incident.deadline_at,
+        "message": f"Controlled Brute Force simulation successfully initiated with Incident ID #{incident.id}.",
+        "incident": incident,
     }
 
 
-@router.post("/phishing")  # Expose the phishing simulation endpoint.
-def phishing_simulation(db: Session = Depends(get_db)):  # Create and return a phishing simulation.
-    incident = create_phishing_simulation(db)  # Create the simulated incident and indicators.
-    indicators = db.query(Indicator).filter(Indicator.incident_id == incident.id).all()  # Load its indicators.
+@router.post("/phishing", response_model=SimulationResponse, status_code=status.HTTP_201_CREATED)
+def trigger_phishing(
+    req: Optional[SimulationCustomRequest] = None,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Launch a controlled, safe Phishing attack simulation.
+    - Generates realistic email telemetry and safe indicators (mock domain, safe SHA-256)
+    - Persists incident in PostgreSQL
+    - Starts the 72-hour regulatory countdown clock
+    - Initializes NIST IR phase 'Detection & Analysis'
+    - Creates timeline audit trail
+    """
+    actor = current_user.username if current_user else "simulator"
+    params = req.model_dump() if req else {}
+    incident = create_phishing_simulation(db=db, actor=actor, custom_params=params)
 
-    return {  # Return the simulation summary.
-        "id": incident.id,  # Include the incident identifier.
-        "title": incident.title,  # Include the incident title.
-        "attack_type": incident.attack_type,  # Include the attack type.
-        "status": incident.status,  # Include the incident status.
-        "nist_phase": incident.nist_phase,  # Include the NIST phase.
-        "detected_at": incident.detected_at,  # Include the detection timestamp.
-        "deadline_at": incident.deadline_at,  # Include the response deadline.
-        "indicators": [  # Include the incident indicators.
-            {  # Serialize one indicator.
-                "type": indicator.type,  # Include the indicator type.
-                "value": indicator.value,  # Include the indicator value.
-                "note": indicator.note,  # Include the indicator note.
-            }
-            for indicator in indicators
-        ],
+    return {
+        "incident_id": incident.id,
+        "attack_type": incident.attack_type,
+        "status": incident.status,
+        "detected_at": incident.detected_at,
+        "deadline_at": incident.deadline_at,
+        "message": f"Controlled Phishing simulation successfully initiated with Incident ID #{incident.id}.",
+        "incident": incident,
     }

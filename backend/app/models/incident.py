@@ -1,32 +1,77 @@
-from datetime import datetime, timezone  # Import timezone-aware timestamp helpers.
+from datetime import datetime, timezone
+from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import relationship
+from app.db.database import Base, UTCDateTime
 
-from sqlalchemy import Column, DateTime, Integer, String, Text  # Import SQLAlchemy column types.
 
-from app.db.database import Base  # Import the shared declarative base.
+class Incident(Base):
+    __tablename__ = "incidents"
 
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    attack_type = Column(String(100), nullable=False)  # "Brute Force", "Phishing", etc.
+    status = Column(String(50), nullable=False, default="Open")  # Open -> Under Investigation -> Contained -> Eradicated -> Recovered -> Closed
+    priority = Column(String(10), nullable=False, default="P3")  # P1, P2, P3, P4
+    source = Column(String(100), nullable=False, default="simulator")  # simulator, system, human, AI
+    current_nist_phase = Column(String(100), nullable=False, default="Detection & Analysis")
 
-class Incident(Base):  # Define the incident database model.
-    __tablename__ = "incidents"  # Map the model to the incidents table.
-
-    id = Column(Integer, primary_key=True)  # Store the unique incident identifier.
-    title = Column(String, nullable=False)  # Store the incident title.
-    description = Column(Text)  # Store the incident description.
-    what_happened = Column(Text)  # Store the incident narrative.
-    source = Column(String)  # Store the incident source.
-    initial_impact = Column(Text)  # Store the initial impact assessment.
-    attack_type = Column(String)  # Store the attack classification.
-    severity = Column(String, default="Not Determined")  # Store the incident severity.
-    nist_phase = Column(String, default="Detection & Analysis")  # Store the NIST response phase.
-    status = Column(String, default="Open")  # Store the incident status.
-    notes = Column(Text)  # Store additional incident notes.
-    detected_at = Column(DateTime(timezone=True))  # Store when the incident was detected.
-    deadline_at = Column(DateTime(timezone=True))  # Store the incident response deadline.
-    created_at = Column(  # Define the incident creation timestamp.
-        DateTime(timezone=True),  # Store the creation time with timezone information.
-        default=lambda: datetime.now(timezone.utc),  # Set the creation time in UTC.
+    detected_at = Column(
+        UTCDateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
-    updated_at = Column(  # Define the incident update timestamp.
-        DateTime(timezone=True),  # Store the update time with timezone information.
-        default=lambda: datetime.now(timezone.utc),  # Set the initial update time in UTC.
-        onupdate=lambda: datetime.now(timezone.utc),  # Refresh the update time in UTC.
+    deadline_at = Column(
+        UTCDateTime,
+        nullable=False,
+    )
+
+    created_at = Column(
+        UTCDateTime,
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        UTCDateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    # Relationships
+    indicators = relationship(
+        "Indicator",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="Indicator.created_at",
+    )
+    timeline_events = relationship(
+        "TimelineEvent",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="TimelineEvent.timestamp",
+    )
+    nist_history = relationship(
+        "NISTHistory",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="NISTHistory.timestamp",
+    )
+    affected_assets = relationship(
+        "IncidentAsset",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentAsset.added_at",
+    )
+    affected_users = relationship(
+        "IncidentUser",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentUser.added_at",
+    )
+    evidence = relationship(
+        "Evidence",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="Evidence.created_at",
     )

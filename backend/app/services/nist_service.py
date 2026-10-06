@@ -1,72 +1,66 @@
+from datetime import datetime, timezone
+from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from app.models.nist_history import NISTHistory
+from app.models.timeline import TimelineEvent
 from app.models.incident import Incident
-from app.models.nist_history import NistHistory
-from app.services.timeline_service import record_event
 
-
-ALLOWED_NIST_PHASES = (
+VALID_NIST_PHASES: List[str] = [
     "Preparation",
     "Detection & Analysis",
     "Containment, Eradication & Recovery",
     "Post-Incident Activity",
-)
+]
 
 
-class InvalidNistPhase(ValueError):
-    """Raised when an incident is assigned an unsupported NIST phase."""
+def validate_nist_phase(phase: str) -> None:
+    """Validate that the given phase is an approved NIST IR lifecycle phase."""
+    if phase not in VALID_NIST_PHASES:
+        raise ValueError(f"Unknown NIST phase '{phase}'. Valid phases are: {', '.join(VALID_NIST_PHASES)}")
 
 
-def change_nist_phase(
+def record_nist_transition(
     db: Session,
     incident: Incident,
     new_phase: str,
-    reason: str | None,
-    actor: str = "analyst",
-) -> Incident:
-    """Change an incident's NIST phase and record both histories atomically."""
-    if new_phase not in ALLOWED_NIST_PHASES:
-        valid_phases = ", ".join(ALLOWED_NIST_PHASES)
-        raise InvalidNistPhase(
-            f"Invalid NIST phase '{new_phase}'. Valid phases: {valid_phases}"
-        )
-    if new_phase == incident.nist_phase:
-        return incident
+    actor: str = "system",
+    rationale: Optional[str] = None,
+    source: str = "human",
+) -> NISTHistory:
+    """
+    Record a NIST phase change for an incident, update the incident's current phase,
+    and append an audit timeline event.
+    """
+    validate_nist_phase(new_phase)
+    now = datetime.now(timezone.utc)
+    old_phase = incident.current_nist_phase
 
-    previous_phase = incident.nist_phase
-    try:
-        history = NistHistory(
-            incident_id=incident.id,
-            previous_phase=previous_phase,
-            new_phase=new_phase,
-            actor=actor,
-            reason=reason,
-        )
-        db.add(history)
-        incident.nist_phase = new_phase
-        record_event(
-            db,
-            incident.id,
-            "NIST Phase Changed",
-            "human",
-            actor,
-            previous_value=previous_phase,
-            new_value=new_phase,
-            description=f"NIST phase changed from {previous_phase} to {new_phase}",
-        )
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    db.refresh(incident)
-    return incident
+    # 1. Update incident
+    incident.current_nist_phase = new_phase
+    incident.updated_at = now
 
-
-def list_nist_history(db: Session, incident_id: int) -> list[NistHistory]:
-    """Return NIST phase history newest first."""
-    return (
-        db.query(NistHistory)
-        .filter(NistHistory.incident_id == incident_id)
-        .order_by(NistHistory.timestamp.desc(), NistHistory.id.desc())
-        .all()
+    # 2. Record to nist_history
+    history_entry = NISTHistory(
+        incident_id=incident.id,
+        phase=new_phase,
+        timestamp=now,
+        actor=actor,
+        rationale=rationale,
     )
+    db.add(history_entry)
+
+    # 3. Record timeline event
+    timeline_event = TimelineEvent(
+        incident_id=incident.id,
+        timestamp=now,
+        event="NIST Phase Updated",
+        actor=actor,
+        source=source,
+        description=f"Incident transitioned from '{old_phase}' to '{new_phase}'." + (f" Rationale: {rationale}" if rationale else ""),
+        previous_value=old_phase,
+        new_value=new_phase,
+    )
+    db.add(timeline_event)
+
+    return history_entry

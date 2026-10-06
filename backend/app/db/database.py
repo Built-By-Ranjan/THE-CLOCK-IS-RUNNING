@@ -1,17 +1,61 @@
-from sqlalchemy import create_engine  # Import the SQLAlchemy engine factory.
-from sqlalchemy.orm import declarative_base, sessionmaker  # Import ORM base and session helpers.
+import datetime
+from typing import Generator
+from sqlalchemy import create_engine, DateTime, TypeDecorator
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-from app.core.config import settings  # Import application configuration.
-
-
-engine = create_engine(settings.DATABASE_URL)  # Create the database engine from configuration.
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # Configure database sessions.
-Base = declarative_base()  # Create the declarative ORM base class.
+from app.core.config import settings
 
 
-def get_db():  # Define the database session dependency.
-    db = SessionLocal()  # Open a new database session.
-    try:  # Begin protected session usage.
-        yield db  # Provide the session to the caller.
-    finally:  # Ensure cleanup after session usage.
-        db.close()  # Close the database session.
+class UTCDateTime(TypeDecorator):
+    """Ensures datetime values are always stored and returned with timezone.utc."""
+    impl = DateTime(timezone=True)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            if value.tzinfo is None:
+                value = value.replace(tzinfo=datetime.timezone.utc)
+            else:
+                value = value.astimezone(datetime.timezone.utc)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            if value.tzinfo is None:
+                value = value.replace(tzinfo=datetime.timezone.utc)
+            else:
+                value = value.astimezone(datetime.timezone.utc)
+        return value
+
+
+# Engine configuration
+connect_args = {}
+if settings.DATABASE_URL.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
+    engine = create_engine(
+        settings.DATABASE_URL,
+        connect_args=connect_args,
+    )
+else:
+    engine = create_engine(
+        settings.DATABASE_URL,
+        pool_pre_ping=True,
+    )
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+
+def get_db() -> Generator[Session, None, None]:
+    """Dependency that yields a database session and safely closes it."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+def init_db() -> None:
+    """Create all tables in the database."""
+    Base.metadata.create_all(bind=engine)
