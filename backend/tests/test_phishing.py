@@ -2,13 +2,13 @@ from datetime import datetime, timezone
 import pytest
 
 
-def test_brute_force_simulation_creation(client):
-    response = client.post("/simulations/brute-force")
+def test_phishing_simulation_creation(client):
+    response = client.post("/simulations/phishing")
     assert response.status_code == 201
 
     data = response.json()
     assert "incident_id" in data
-    assert data["attack_type"] == "Brute Force"
+    assert data["attack_type"] == "Phishing"
     assert data["status"] == "Open"
 
     detected_at_str = data["detected_at"]
@@ -34,8 +34,7 @@ def test_brute_force_simulation_creation(client):
     incident = inc_resp.json()
 
     assert incident["id"] == incident_id
-    assert incident["title"] == "Controlled Simulation: Distributed SSH/Auth Brute Force"
-    assert incident["attack_type"] == "Brute Force"
+    assert incident["attack_type"] == "Phishing"
     assert incident["status"] == "Open"
     assert incident["priority"] in ["P1", "P2", "P3", "P4"]
     assert incident["current_nist_phase"] == "Detection & Analysis"
@@ -44,20 +43,29 @@ def test_brute_force_simulation_creation(client):
     indicators = incident["indicators"]
     assert len(indicators) >= 4
     indicator_types = [ind["type"] for ind in indicators]
-    assert "IP" in indicator_types
-    assert "Username" in indicator_types
-    assert "Command" in indicator_types
+    assert "Email" in indicator_types
+    assert "Domain" in indicator_types
+    assert "URL" in indicator_types
+    assert "File Hash" in indicator_types
 
-    # RFC 5737 safe IP check
-    ip_ind = next(ind for ind in indicators if ind["type"] == "IP")
-    assert ip_ind["value"] == "198.51.100.42"
+    email_ind = next(ind for ind in indicators if ind["type"] == "Email")
+    assert "fake" in email_ind["value"] or "example" in email_ind["value"]
+
+    domain_ind = next(ind for ind in indicators if ind["type"] == "Domain")
+    assert "fake-identity-verification.example" == domain_ind["value"]
+
+    url_ind = next(ind for ind in indicators if ind["type"] == "URL")
+    assert "https://" in url_ind["value"]
+
+    hash_ind = next(ind for ind in indicators if ind["type"] == "File Hash")
+    assert len(hash_ind["value"]) == 64  # SHA-256 length
 
     # 5. Verify timeline events exist
     timeline = incident["timeline_events"]
     assert len(timeline) >= 4
     event_names = [ev["event"] for ev in timeline]
-    assert "Incident Detected" in event_names
     assert "Simulation Initiated" in event_names
+    assert "Suspicious Email Reported" in event_names
     assert "Indicators Extracted" in event_names
     assert "NIST Phase Assigned" in event_names
 
@@ -77,24 +85,14 @@ def test_brute_force_simulation_creation(client):
     assert len(incident["affected_users"]) >= 2
 
 
-def test_brute_force_indicators_and_timeline_endpoints(client):
-    sim_resp = client.post("/simulations/brute-force")
+def test_phishing_endpoints_and_clock(client):
+    sim_resp = client.post("/simulations/phishing")
     inc_id = sim_resp.json()["incident_id"]
 
-    # Verify dedicated indicator endpoint
-    ind_resp = client.get(f"/incidents/{inc_id}/indicators")
-    assert ind_resp.status_code == 200
-    indicators = ind_resp.json()
-    assert len(indicators) >= 4
-
-    # Verify dedicated timeline endpoint
-    tl_resp = client.get(f"/incidents/{inc_id}/timeline")
-    assert tl_resp.status_code == 200
-    timeline = tl_resp.json()
-    assert len(timeline) >= 4
-
-    # Verify dedicated nist-history endpoint
-    nist_resp = client.get(f"/incidents/{inc_id}/nist-history")
-    assert nist_resp.status_code == 200
-    nist_history = nist_resp.json()
-    assert len(nist_history) >= 1
+    # Verify dedicated clock endpoint
+    clock_resp = client.get(f"/incidents/{inc_id}/clock")
+    assert clock_resp.status_code == 200
+    clock = clock_resp.json()
+    assert clock["is_expired"] is False
+    assert clock["remaining_seconds"] > 0
+    assert "71h" in clock["formatted_remaining"] or "72h" in clock["formatted_remaining"]

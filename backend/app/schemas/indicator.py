@@ -1,8 +1,6 @@
 from datetime import datetime
-from typing import Literal
-
-from pydantic import BaseModel, ConfigDict, field_validator
-
+from typing import Optional, Literal
+from pydantic import BaseModel, Field, ConfigDict
 
 IndicatorType = Literal[
     "IP",
@@ -16,56 +14,28 @@ IndicatorType = Literal[
     "Other",
 ]
 
-ALLOWED_INDICATOR_TYPES = (
-    "IP",
-    "Domain",
-    "URL",
-    "Email",
-    "File Hash",
-    "Username",
-    "Process",
-    "Command",
-    "Other",
-)
 
-
-class IndicatorCreate(BaseModel):  # Define fields accepted when adding an indicator.
+class IndicatorCreate(BaseModel):
     type: IndicatorType
-    value: str
-    note: str | None = None
-
-    @field_validator("type", mode="before")
-    @classmethod
-    def validate_type(cls, value: object) -> object:
-        if value not in ALLOWED_INDICATOR_TYPES:
-            valid_types = ", ".join(ALLOWED_INDICATOR_TYPES)
-            raise ValueError(f"must be one of: {valid_types}")
-        return value
+    value: str = Field(..., min_length=1, max_length=500)
+    description: Optional[str] = None
+    source: str = "system"
 
 
-class IndicatorUpdate(BaseModel):  # Define optional indicator update fields.
-    type: IndicatorType | None = None
-    value: str | None = None
-    note: str | None = None
-
-    @field_validator("type", mode="before")
-    @classmethod
-    def validate_type(cls, value: object) -> object:
-        if value is None:
-            return value
-        if value not in ALLOWED_INDICATOR_TYPES:
-            valid_types = ", ".join(ALLOWED_INDICATOR_TYPES)
-            raise ValueError(f"must be one of: {valid_types}")
-        return value
+class IndicatorUpdate(BaseModel):
+    type: Optional[IndicatorType] = None
+    value: Optional[str] = Field(None, min_length=1, max_length=500)
+    description: Optional[str] = None
 
 
-class IndicatorResponse(BaseModel):  # Define the indicator response payload.
-    model_config = ConfigDict(from_attributes=True)
-
+class IndicatorResponse(BaseModel):
     id: int
     incident_id: int
-    type: str | None = None
-    value: str | None = None
-    note: str | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    type: str
+    value: str
+    description: Optional[str]
+    source: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)

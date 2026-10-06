@@ -1,69 +1,71 @@
 from datetime import datetime
-from typing import Any
+from typing import Optional, List, Literal
+from pydantic import BaseModel, Field, ConfigDict
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from app.schemas.indicator import IndicatorResponse
+from app.schemas.timeline import TimelineEventResponse
+from app.schemas.nist import NISTHistoryResponse, NISTPhase
+from app.schemas.asset import AssetResponse, AffectedUserResponse
+from app.schemas.evidence import EvidenceResponse
 
-from app.services.clock_service import get_clock_status
-from app.services.status_service import Status
+IncidentStatus = Literal[
+    "Open",
+    "Under Investigation",
+    "Contained",
+    "Eradicated",
+    "Recovered",
+    "Closed",
+]
 
-
-class IncidentCreate(BaseModel):  # Define fields accepted when creating an incident.
-    model_config = ConfigDict(extra="forbid")
-
-    title: str
-    description: str | None = None
-    what_happened: str | None = None
-    source: str | None = None
-    initial_impact: str | None = None
-    attack_type: str | None = None
-    severity: str = "Not Determined"
-
-
-class IncidentUpdate(BaseModel):  # Define optional fields accepted for updates.
-    model_config = ConfigDict(extra="forbid")
-
-    title: str | None = None
-    description: str | None = None
-    what_happened: str | None = None
-    source: str | None = None
-    initial_impact: str | None = None
-    attack_type: str | None = None
-    severity: str | None = None
-    status: Status | None = None
-    notes: str | None = None
+IncidentPriority = Literal["P1", "P2", "P3", "P4"]
 
 
-class IncidentResponse(BaseModel):  # Define the incident response payload.
-    model_config = ConfigDict(from_attributes=True)
+class IncidentCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    description: str = Field(..., min_length=1)
+    attack_type: str = Field(..., min_length=1, max_length=100)
+    priority: IncidentPriority = "P3"
+    source: str = "human"
+    current_nist_phase: NISTPhase = "Detection & Analysis"
+    detected_at: Optional[datetime] = None
+    affected_assets: Optional[List[str]] = []
+    affected_users: Optional[List[str]] = []
 
+
+class IncidentUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = Field(None, min_length=1)
+    attack_type: Optional[str] = Field(None, min_length=1, max_length=100)
+    status: Optional[IncidentStatus] = None
+    priority: Optional[IncidentPriority] = None
+    current_nist_phase: Optional[NISTPhase] = None
+    rationale: Optional[str] = None
+
+
+class IncidentResponse(BaseModel):
     id: int
     title: str
-    description: str | None = None
-    what_happened: str | None = None
-    source: str | None = None
-    initial_impact: str | None = None
-    attack_type: str | None = None
-    severity: str | None = None
-    nist_phase: str | None = None
-    status: str | None = None
-    notes: str | None = None
-    detected_at: datetime | None = None
-    deadline_at: datetime | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-    clock: dict[str, datetime | str]
+    description: str
+    attack_type: str
+    status: str
+    priority: str
+    source: str
+    current_nist_phase: str
+    detected_at: datetime
+    deadline_at: datetime
+    created_at: datetime
+    updated_at: datetime
 
-    @model_validator(mode="before")
-    @classmethod
-    def add_clock(cls, value: Any) -> Any:  # Add clock status while reading an ORM object.
-        if isinstance(value, dict):
-            data = value.copy()
-        else:
-            data = {
-                field: getattr(value, field)
-                for field in cls.model_fields
-                if field != "clock" and hasattr(value, field)
-            }
+    indicators: List[IndicatorResponse] = []
+    timeline_events: List[TimelineEventResponse] = []
+    nist_history: List[NISTHistoryResponse] = []
+    affected_assets: List[AssetResponse] = []
+    affected_users: List[AffectedUserResponse] = []
+    evidence: List[EvidenceResponse] = []
 
-        data["clock"] = get_clock_status(data["detected_at"], data["deadline_at"])
-        return data
+    model_config = ConfigDict(from_attributes=True)
+
+
+class IncidentListResponse(BaseModel):
+    items: List[IncidentResponse]
+    total: int

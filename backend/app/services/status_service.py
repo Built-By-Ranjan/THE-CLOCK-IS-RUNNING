@@ -1,7 +1,6 @@
-from typing import Literal
+from typing import List, Dict
 
-
-Status = Literal[
+VALID_STATUSES: List[str] = [
     "Open",
     "Under Investigation",
     "Contained",
@@ -10,47 +9,31 @@ Status = Literal[
     "Closed",
 ]
 
-ALLOWED_STATUSES = (
-    "Open",
-    "Under Investigation",
-    "Contained",
-    "Eradicated",
-    "Recovered",
-    "Closed",
-)
-
-ALLOWED_TRANSITIONS = {
-    "Open": ("Under Investigation",),
-    "Under Investigation": ("Contained",),
-    "Contained": ("Eradicated", "Under Investigation"),
-    "Eradicated": ("Recovered", "Contained"),
-    "Recovered": ("Closed", "Eradicated"),
-    "Closed": (),
+# Permitted state transitions for incident lifecycle
+ALLOWED_TRANSITIONS: Dict[str, List[str]] = {
+    "Open": ["Under Investigation", "Closed"],
+    "Under Investigation": ["Contained", "Closed", "Open"],
+    "Contained": ["Eradicated", "Under Investigation", "Closed"],
+    "Eradicated": ["Recovered", "Under Investigation", "Closed"],
+    "Recovered": ["Closed", "Under Investigation"],
+    "Closed": ["Open", "Under Investigation"],
 }
 
 
-class InvalidStatusTransition(ValueError):
-    """Raised when an incident status is not valid for its lifecycle."""
+def validate_status_transition(current_status: str, new_status: str) -> None:
+    """
+    Validate that changing from current_status to new_status is an allowed transition.
+    Raises ValueError on invalid state transition.
+    """
+    if new_status not in VALID_STATUSES:
+        raise ValueError(f"Unknown status '{new_status}'. Valid statuses are: {', '.join(VALID_STATUSES)}")
 
-
-def validate_transition(current: str, new: str) -> None:
-    """Validate a status change against the incident lifecycle."""
-    valid_statuses = ", ".join(ALLOWED_STATUSES)
-    if current not in ALLOWED_STATUSES:
-        raise InvalidStatusTransition(
-            f"Unknown status '{current}'. Valid statuses: {valid_statuses}"
-        )
-    if new not in ALLOWED_STATUSES:
-        raise InvalidStatusTransition(
-            f"Unknown status '{new}'. Valid statuses: {valid_statuses}"
-        )
-    if current == new:
+    if current_status == new_status:
         return
 
-    allowed = ALLOWED_TRANSITIONS[current]
-    if new not in allowed:
-        allowed_statuses = ", ".join(allowed) or "nothing"
-        raise InvalidStatusTransition(
-            f"Cannot change status from {current} to {new}. "
-            f"Allowed: {allowed_statuses}"
+    allowed = ALLOWED_TRANSITIONS.get(current_status, [])
+    if new_status not in allowed:
+        raise ValueError(
+            f"Invalid status transition from '{current_status}' to '{new_status}'. "
+            f"Allowed next transitions are: {', '.join(allowed) if allowed else 'None'}"
         )
