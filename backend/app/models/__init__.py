@@ -5,6 +5,7 @@ from app.models.timeline import TimelineEvent
 from app.models.nist_history import NISTHistory
 from app.models.asset import IncidentAsset, IncidentUser
 from app.models.evidence import Evidence
+from app.models.ai_analysis import AIAnalysis
 
 __all__ = [
     "User",
@@ -15,4 +16,5 @@ __all__ = [
     "IncidentAsset",
     "IncidentUser",
     "Evidence",
+    "AIAnalysis",
 ]

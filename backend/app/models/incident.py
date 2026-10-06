@@ -75,3 +75,10 @@ class Incident(Base):
         cascade="all, delete-orphan",
         order_by="Evidence.created_at",
     )
+    ai_analyses = relationship(
+        "AIAnalysis",
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="AIAnalysis.created_at.desc()",
+    )
+

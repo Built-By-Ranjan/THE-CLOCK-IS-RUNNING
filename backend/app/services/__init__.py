@@ -35,4 +35,22 @@ __all__ = [
     "update_indicator",
     "delete_indicator",
     "add_evidence",
+    "analyze_incident",
+    "reanalyze_incident",
+    "get_incident_analyses",
+    "get_incident_analysis_by_id",
+    "review_incident_analysis",
+    "knowledge_loader",
+    "gemini_service",
 ]
+
+from app.services.ai.analysis_service import (
+    analyze_incident,
+    reanalyze_incident,
+    get_incident_analyses,
+    get_incident_analysis_by_id,
+    review_incident_analysis,
+)
+from app.services.ai.knowledge_loader import knowledge_loader
+from app.services.ai.gemini_service import gemini_service
+

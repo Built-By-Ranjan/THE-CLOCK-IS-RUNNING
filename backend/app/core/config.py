@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     MFA_ENCRYPTION_KEY: str = ""
     ENVIRONMENT: str = "development"
     GEMINI_API_KEY: str = "replace_me"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TIMEOUT_SECONDS: float = 30.0
+    GEMINI_MAX_RETRIES: int = 2
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),
