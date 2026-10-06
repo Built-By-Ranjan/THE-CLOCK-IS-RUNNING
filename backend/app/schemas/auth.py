@@ -10,9 +10,9 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    username: str
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
     password: str
-    otp_code: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -32,20 +32,24 @@ class TokenResponse(BaseModel):
     user: UserResponse
 
 
-class MFASetupResponse(BaseModel):
-    secret: str
-    provisioning_uri: str
+class LoginMFAChallengeResponse(BaseModel):
+    mfa_required: bool = True
+    challenge_id: str
+    email_masked: str
+    expires_in_seconds: int
 
 
-class MFAEnableRequest(BaseModel):
-    otp_code: str = Field(..., min_length=6, max_length=6)
+class MFAVerifyRequest(BaseModel):
+    challenge_id: str
+    otp: str = Field(..., min_length=6, max_length=6)
 
 
-class MFADisableRequest(BaseModel):
-    otp_code: Optional[str] = None
-    password: Optional[str] = None
+class MFAResendRequest(BaseModel):
+    challenge_id: str
 
 
-class MFAResponse(BaseModel):
+class MFAResendResponse(BaseModel):
     message: str
-    mfa_enabled: bool
+    challenge_id: str
+    cooldown_seconds: int
+    expires_in_seconds: int

@@ -6,6 +6,7 @@ from app.models.nist_history import NISTHistory
 from app.models.asset import IncidentAsset, IncidentUser
 from app.models.evidence import Evidence
 from app.models.ai_analysis import AIAnalysis
+from app.models.mfa import MFAChallenge
 
 __all__ = [
     "User",
@@ -17,4 +18,5 @@ __all__ = [
     "IncidentUser",
     "Evidence",
     "AIAnalysis",
+    "MFAChallenge",
 ]

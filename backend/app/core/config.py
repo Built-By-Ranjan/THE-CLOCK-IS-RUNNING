@@ -15,6 +15,18 @@ class Settings(BaseSettings):
     GEMINI_TIMEOUT_SECONDS: float = 30.0
     GEMINI_MAX_RETRIES: int = 2
 
+    # Gmail SMTP configuration
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+
+    # Email OTP configuration
+    OTP_EXPIRY_MINUTES: int = 5
+    OTP_RESEND_COOLDOWN_SECONDS: int = 60
+    OTP_MAX_ATTEMPTS: int = 5
+
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),
         env_file_encoding="utf-8",

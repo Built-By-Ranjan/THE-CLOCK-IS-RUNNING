@@ -12,9 +12,8 @@ def test_swagger_and_openapi_docs(client):
     paths = spec["paths"]
     assert "/health" in paths
     assert "/auth/login" in paths
-    assert "/auth/mfa/setup" in paths
-    assert "/auth/mfa/enable" in paths
-    assert "/auth/mfa/disable" in paths
+    assert "/auth/mfa/verify" in paths
+    assert "/auth/mfa/resend" in paths
     assert "/incidents" in paths
     assert "/incidents/{incident_id}" in paths
     assert "/incidents/{incident_id}/indicators" in paths

@@ -1,5 +1,7 @@
 import base64
 import hashlib
+import hmac
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
@@ -66,3 +68,33 @@ def decrypt_mfa_secret(encrypted_secret: str) -> str:
     """Decrypt an encrypted TOTP secret."""
     cipher = _get_fernet()
     return cipher.decrypt(encrypted_secret.encode("utf-8")).decode("utf-8")
+
+
+def generate_otp() -> str:
+    """Generate a cryptographically secure 6-digit numeric OTP code."""
+    code = secrets.randbelow(1_000_000)
+    return f"{code:06d}"
+
+
+def hash_otp(otp: str, salt: str = "") -> str:
+    """Hash an OTP code using HMAC-SHA256 with the server SECRET_KEY and an optional salt."""
+    key = f"{settings.SECRET_KEY}:{salt}".encode("utf-8")
+    return hmac.new(key, otp.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def verify_otp_hash(plain_otp: str, hashed_otp: str, salt: str = "") -> bool:
+    """Constant-time verification of an OTP code against its stored hash."""
+    expected = hash_otp(plain_otp, salt=salt)
+    return hmac.compare_digest(expected, hashed_otp)
+
+
+def mask_email(email: str) -> str:
+    """Mask email address for privacy in API responses, e.g. a***t@defense.corp."""
+    if "@" not in email:
+        return email
+    local, domain = email.split("@", 1)
+    if len(local) <= 2:
+        masked_local = f"{local[0]}*" if local else "*"
+    else:
+        masked_local = f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}"
+    return f"{masked_local}@{domain}"

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THE CLOCK IS RUNNING — SOC Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script>
+    // Root entry point routing
+    const token = localStorage.getItem('token');
+    if (token) {
+      window.location.replace('soc.html');
+    } else {
+      window.location.replace('login.html');
+    }
+  </script>
+</head>
+<body style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary);">
+  <div style="text-align: center; color: var(--text-muted); font-size: 13px;">
+    <p>Redirecting to THE CLOCK IS RUNNING...</p>
+    <div style="margin-top: 14px;">
+      <a href="soc.html" class="btn btn-secondary btn-sm" style="margin-right: 8px;">SOC Dashboard</a>
+      <a href="attack.html" class="btn btn-secondary btn-sm">Attack Simulator</a>
+    </div>
+  </div>
+</body>
+</html>
