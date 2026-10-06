@@ -10,6 +10,8 @@ from app.db.database import init_db
 from app.api.auth import router as auth_router
 from app.api.incidents import router as incidents_router
 from app.api.simulations import router as simulations_router
+from app.api.ai import router as ai_router
+
 
 
 @asynccontextmanager
@@ -88,3 +90,5 @@ def health_check():
 app.include_router(auth_router)
 app.include_router(incidents_router)
 app.include_router(simulations_router)
+app.include_router(ai_router)
+

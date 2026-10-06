@@ -46,6 +46,11 @@ from app.schemas.simulation import (
     SimulationResponse,
     SimulationCustomRequest,
 )
+from app.schemas.ai import (
+    AIAnalysisOutput,
+    AIAnalysisResponse,
+    AIReviewRequest,
+)
 
 __all__ = [
     "UserRegister",
@@ -80,4 +85,8 @@ __all__ = [
     "EvidenceResponse",
     "SimulationResponse",
     "SimulationCustomRequest",
+    "AIAnalysisOutput",
+    "AIAnalysisResponse",
+    "AIReviewRequest",
 ]
+
