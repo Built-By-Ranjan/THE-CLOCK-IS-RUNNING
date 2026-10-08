@@ -71,6 +71,6 @@ Final Report
 | **Muskan** | Backend & Core Development |
 | **Riddhish** | Frontend & UI Development |
 | **Vaishnavi** | Cybersecurity Research |
-| **Rupesh Ranjan** | Full Stack Development & AI Integration |
+| **Rupesh Ranjan** | Full Stack Dev. & AI Integration |
 
 Together, we built **THE CLOCK IS RUNNING** as an AI-assisted, human-in-the-loop cyber incident response platform for the Microsoft Hackathon.
