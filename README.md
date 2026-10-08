@@ -1,24 +1,58 @@
 # THE CLOCK IS RUNNING
 
-AI-Assisted Incident Response Assistant.
+### AI-Assisted Cyber Incident Response & Investigation Platform
 
-## Structure
-- backend/ — FastAPI + PostgreSQL
-- frontend/ — frontend application
-- knowledge/ — controlled NIST / ATT&CK knowledge base
-- docs/ — shared documentation
-- tests/ — integration/shared tests
+> **Detect the incident. Understand the attack. Structure the response. Beat the clock.**
 
-## Current MVP
-1. Brute Force
-2. Phishing
+---
 
-Later: PowerShell Execution, DDoS
+## 🏆 Microsoft Hackathon
 
-## Branches
-- main
-- dev1/core-backend
-- dev2/ai-intelligence
-- dev3/frontend
+**THE CLOCK IS RUNNING** is an AI-assisted Cyber Incident Response platform built to help security teams move from incident detection to structured, evidence-backed response.
 
-Never commit `.env`, passwords, API keys, or other secrets.
+The project has been **selected for the 3rd Round of the Microsoft Hackathon**.
+
+Our focus is not just detecting a cyber attack, but helping analysts understand **what happened, what to do next, why it matters, and how the entire response can be tracked and audited.**
+
+---
+
+## 🎯 Problem
+
+During a cyber incident, security teams often have to work across multiple tools and manually connect:
+
+- Incident alerts
+- Attack techniques
+- NIST response phases
+- Evidence
+- Investigation timelines
+- Severity and priority
+- Human decisions
+- Compliance deadlines
+- Final reporting
+
+This can slow down response and make it difficult to maintain a consistent, auditable investigation process.
+
+---
+
+## 💡 Our Solution
+
+**THE CLOCK IS RUNNING** brings these activities into one incident-response workflow.
+
+```text
+Security Event
+      ↓
+Incident
+      ↓
+AI-Assisted Analysis
+      ↓
+NIST Response Phase
+      ↓
+MITRE ATT&CK Mapping
+      ↓
+Evidence + Timeline
+      ↓
+Human Review
+      ↓
+72-Hour Clock
+      ↓
+Final Report
