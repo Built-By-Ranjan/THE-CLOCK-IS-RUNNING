@@ -56,3 +56,13 @@ Human Review
 72-Hour Clock
       ↓
 Final Report
+
+
+👥 Team
+Team Member	Contribution
+[Rishabh]             Leader
+[Rashi]	          documentation /  Research
+[Muskan]	          Backend / core
+[Riddhish]	          Frontend / UI
+[Vaishnavi]	          Research / Cybersecurity
+[Rupesh Ranjan]	    Full Stack Dev. &  AI Integration
