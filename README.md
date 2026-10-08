@@ -66,7 +66,7 @@ Final Report
 
 | Team Member | Role |
 |---|---|
-| **Rishabh** | Team Lead |
+| **Rishab** | Team Lead |
 | **Rashi** | Documentation & Research |
 | **Muskan** | Backend & Core Development |
 | **Riddhish** | Frontend & UI Development |
